@@ -2,51 +2,108 @@
 #include "NeoPixelController.h"
 #include "NeoPixelPattern.h"
 
-void NeoPixelController::play(NeoPixelPattern& pattern) {
-    if (activePattern != NULL) {
-        stop();
-    }
-    activePattern = &pattern;
-    state = PLAY;
-    activePattern->play(this);
+NeoPixelController::NeoPixelController(uint16_t numPixels, uint8_t numSegments, uint8_t pin, uint8_t type) :
+    Adafruit_NeoPixel(numPixels, pin, type),
+    numSegments(0),
+    segments(NULL) {
+    
+    updateSegments(numSegments);
 }
 
-void NeoPixelController::pause() {
-    if (isPlaying()) {
-        state = PAUSE;
-        activePattern->pause();
+NeoPixelController::~NeoPixelController() {
+    if (segments) free(segments);
+}
+
+void NeoPixelController::updateSegments(uint8_t n) {
+    if (segments) free(segments);
+    numBytes = n * sizeof(segment_t);
+    if ((segments = (segment_t *)malloc(numBytes))) {
+        memset(segments, 0, numBytes);
+        numSegments = n;
+    } else {
+        numSegments = numBytes = 0;
     }
 }
 
-void NeoPixelController::resume() {
-    if (isPaused()) {
-        state = PLAY;
-        activePattern->resume();
+void NeoPixelController::setupSegment(uint8_t segment, uint16_t basePixel, uint16_t length) {
+    segments[segment].basePixel = basePixel;
+    segments[segment].length = length;
+}
+
+void NeoPixelController::play(NeoPixelPattern& pattern, uint8_t segment) {
+    if (segments[segment].pattern != NULL) {
+        stop(segment);
+    }
+    segments[segment].pattern = &pattern;
+    segments[segment].pattern ->play(this, segment);
+}
+
+void NeoPixelController::pause(uint8_t segment) {
+    if (segments[segment].pattern != NULL) {
+        if (segments[segment].pattern->isPlaying()) {
+            segments[segment].pattern->pause();
+        }
+    }
+}
+
+void NeoPixelController::resume(uint8_t segment) {
+    if (segments[segment].pattern != NULL) {
+        if (segments[segment].pattern->isPaused()) {
+            segments[segment].pattern->resume();
+        }
     }
 }
     
-void NeoPixelController::stop() {
-    if (isPlaying() || isPaused()) {
-        state = STOP;
-        activePattern->stop();
-        activePattern = NULL;
-        clear();
-        show();
+void NeoPixelController::stop(uint8_t segment) {
+    if (segments[segment].pattern != NULL) {
+        if (segments[segment].pattern->isPlaying() || segments[segment].pattern->isPaused()) {
+            segments[segment].pattern->stop();
+        }
+        segments[segment].pattern = NULL;
     }
 }
 
 void NeoPixelController::update() {
-    if (isActive() && isPlaying()) {
-        if (activePattern->needsUpdate()) {
-            activePattern->update();
-            show();
-            if (activePattern->isComplete()) {
-                state = STOP;
-                activePattern = NULL;
-//            } else {
-//                activePattern->afterUpdate();
+    bool needShow = false;
+    for (int i = 0; i < numSegments; i++) {
+        if (segments[i].pattern != NULL) {
+            if (segments[i].pattern->needsUpdate()) {
+                segments[i].pattern->update();
+                needShow = true;
+            }
+            if (segments[i].pattern->isLooped()) {
+                segments[i].pattern->onLoop();
+            }
+            if (segments[i].pattern->isComplete()) {
+                segments[i].pattern->onComplete();
             }
         }
     }
+    if (needShow) {
+        show();
+    }
+}    
+
+void NeoPixelController::stop() {
+    for (int i = 0; i < numSegments; i++) {
+        stop(i);
+    }
 }
+
+void NeoPixelController::setSegmentColor(color_t color, uint8_t segment) {
+    for (int i = 0; i < segments[segment].length; i++) {
+        Adafruit_NeoPixel::setPixelColor(segments[segment].basePixel + i, color);
+    }
+    show();
+}
+
+void NeoPixelController::setPixelColor(uint16_t pixel, color_t color, uint8_t segment) {
+    Adafruit_NeoPixel::setPixelColor(pixel + segments[segment].basePixel, color);
+}
+
+color_t NeoPixelController::getPixelColor(uint16_t pixel, uint8_t segment) {
+    return Adafruit_NeoPixel::getPixelColor(pixel + segments[segment].basePixel);
+}
+
+
 

@@ -2,48 +2,53 @@
 #ifndef WipeNeoPixelPattern_h
 #define WipeNeoPixelPattern_h
 
-#include "NeoPixel-Patterns.h"
+#include "NeoPixelPattern.h"
 
 class WipeNeoPixelPattern : public NeoPixelPattern {
 
 public:
 
-    static const direction_t FORWARD = 1;
-    static const direction_t REVERSE = -1;
+    static const uint8_t FORWARD = 0;
+    static const uint8_t REVERSE = 1;
+    static const uint8_t ENDS_IN = 2;
+    static const uint8_t CENTER_OUT = 3;
     
     color_t color;
-    millis_t interval;
-    direction_t direction;
+    uint8_t mode;
     int16_t index;
     
-    WipeNeoPixelPattern(color_t _color, millis_t _interval, direction_t _direction = FORWARD) :
-        NeoPixelPattern(),
-        color(_color),
-        interval(_interval),
-        direction(_direction),
-        index(0) {}
+    WipeNeoPixelPattern() {}
 
-    void setup(color_t _color, millis_t _interval, direction_t _direction = FORWARD) {
+    void setup(color_t _color, unsigned long _interval, uint8_t _mode = FORWARD) {
         color = _color;
         interval = _interval;
-        direction = _direction;
-        reset();
+        mode = _mode;
     }
     
     virtual void reset() {
-        index = -1;
+        index = 0;
     }
     
     virtual void update() {
-        if (index == -1) {
-            index = (direction > 0) ? 0 : controller->numPixels() - 1;
-        }
-        
-        controller->setPixelColor(index, color);
-        
-        index += direction;
-        if ((index >= controller->numPixels()) || (index < 0)) {
-            state = COMPLETE;
+        switch (mode) {
+            case FORWARD:
+                controller->setPixelColor(index++, color, segment);
+                complete = index >= controller->numSegmentPixels(segment);
+                break;
+            case REVERSE:
+                controller->setPixelColor(controller->numSegmentPixels(segment) - ++index, color, segment);
+                complete = index > controller->numSegmentPixels(segment);
+                break;
+            case ENDS_IN:
+                controller->setPixelColor(index++, color, segment);
+                controller->setPixelColor(controller->numSegmentPixels(segment) - index, color, segment);
+                complete = index > controller->numSegmentPixels(segment) / 2;
+                break;
+            case CENTER_OUT:
+                controller->setPixelColor((controller->numSegmentPixels(segment) / 2) - index, color, segment);
+                controller->setPixelColor((controller->numSegmentPixels(segment) / 2) + index++, color, segment);
+                complete = index > controller->numSegmentPixels(segment) / 2;
+                break;
         }
     }
     
