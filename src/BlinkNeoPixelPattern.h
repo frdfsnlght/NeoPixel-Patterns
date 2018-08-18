@@ -29,6 +29,7 @@ public:
     }
     
     virtual void update() {
+        NeoPixelPattern::update();
         if (showColor1) {
             controller->setSegmentColor(color1, segment);
             looped = interval > 0;

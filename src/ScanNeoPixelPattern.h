@@ -26,7 +26,8 @@ public:
     }
     
     virtual void update() {
-        for (int i = 0; i < controller->numSegmentPixels(segment); i++) {
+        NeoPixelPattern::update();
+        for (int i = 0; i < controller->segmentLength(segment); i++) {
             if (i == index) {
                 controller->setPixelColor(i, color, segment);
             } else {
@@ -35,9 +36,9 @@ public:
         }
         
         index += direction;
-        if (index >= controller->numSegmentPixels(segment)) {
+        if (index >= controller->segmentLength(segment)) {
             direction = -direction;
-            index = controller->numSegmentPixels(segment) - 2;
+            index = controller->segmentLength(segment) - 2;
         } else if (index < 0) {
             direction = -direction;
             index = 1;

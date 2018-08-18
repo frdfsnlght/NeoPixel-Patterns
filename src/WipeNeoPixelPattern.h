@@ -30,24 +30,25 @@ public:
     }
     
     virtual void update() {
+        NeoPixelPattern::update();
         switch (mode) {
             case FORWARD:
                 controller->setPixelColor(index++, color, segment);
-                complete = index >= controller->numSegmentPixels(segment);
+                complete = index >= controller->segmentLength(segment);
                 break;
             case REVERSE:
-                controller->setPixelColor(controller->numSegmentPixels(segment) - ++index, color, segment);
-                complete = index > controller->numSegmentPixels(segment);
+                controller->setPixelColor(controller->segmentLength(segment) - ++index, color, segment);
+                complete = index > controller->segmentLength(segment);
                 break;
             case ENDS_IN:
                 controller->setPixelColor(index++, color, segment);
-                controller->setPixelColor(controller->numSegmentPixels(segment) - index, color, segment);
-                complete = index > controller->numSegmentPixels(segment) / 2;
+                controller->setPixelColor(controller->segmentLength(segment) - index, color, segment);
+                complete = index > controller->segmentLength(segment) / 2;
                 break;
             case CENTER_OUT:
-                controller->setPixelColor((controller->numSegmentPixels(segment) / 2) - index, color, segment);
-                controller->setPixelColor((controller->numSegmentPixels(segment) / 2) + index++, color, segment);
-                complete = index > controller->numSegmentPixels(segment) / 2;
+                controller->setPixelColor((controller->segmentLength(segment) / 2) - index, color, segment);
+                controller->setPixelColor((controller->segmentLength(segment) / 2) + index++, color, segment);
+                complete = index > controller->segmentLength(segment) / 2;
                 break;
         }
     }

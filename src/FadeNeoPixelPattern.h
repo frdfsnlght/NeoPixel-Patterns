@@ -36,6 +36,8 @@ public:
     }
     
     virtual void update() {
+        NeoPixelPattern::update();
+
         uint8_t red, green, blue;
         
         red = ((RED(color1) * (steps - index)) + (RED(color2) * index)) / steps;

@@ -3,6 +3,9 @@
  Adapated from https://github.com/FastLED/FastLED/blob/master/examples/Fire2012/Fire2012.ino
 */
  
+// Cooling 55
+// Sparking 120
+
 #ifndef FireNeoPixelPattern_h
 #define FireNeoPixelPattern_h
 
@@ -35,7 +38,7 @@ public:
     
     virtual void reset() {
         if (heat) free(heat);
-        numBytes = controller->numSegmentPixels(segment);
+        numBytes = controller->segmentLength(segment);
         if ((heat = (byte *)malloc(numBytes))) {
             memset(heat, 0, numBytes);
         } else {
@@ -44,6 +47,8 @@ public:
     }
     
     virtual void update() {
+        NeoPixelPattern::update();
+
         // Step 1.  Cool down every cell a little
         for (int i = 0; i < numBytes; i++) {
             uint8_t cold = random(((cooling * 10) / numBytes) + 2);

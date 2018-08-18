@@ -8,8 +8,8 @@ class ChaseNeoPixelPattern : public NeoPixelPattern {
 
 public:
 
-    static const int8_t FORWARD = 1;
-    static const int8_t REVERSE = -1;
+    static const int8_t FORWARD = 0;
+    static const int8_t REVERSE = 1;
     
     color_t color1;
     color_t color2;
@@ -31,17 +31,24 @@ public:
     }
     
     virtual void update() {
-        for (int i = 0; i < controller->numSegmentPixels(segment); i++) {
+        NeoPixelPattern::update();
+        
+        for (int i = 0; i < controller->segmentLength(segment); i++) {
             controller->setPixelColor(i, ((i + index) % 3 == 0) ? color1 : color2, segment);
         }
         
-        index += direction;
-        if (index >= controller->numSegmentPixels(segment)) {
-            index = 0;
-            looped = true;
-        } else if (index <= 0) {
-            index = controller->numSegmentPixels(segment) - 1;
-            looped = true;
+        if (direction == FORWARD) {
+            index++;
+            if (index >= controller->segmentLength(segment)) {
+                index = 0;
+                looped = true;
+            }
+        } else {
+            index--;
+            if (index <= 0) {
+                index = controller->segmentLength(segment) - 1;
+                looped = true;
+            }
         }
     }
     

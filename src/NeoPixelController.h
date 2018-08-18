@@ -26,8 +26,20 @@ public:
     void updateSegments(uint8_t n);
     void setupSegment(uint8_t segment, uint16_t basePixel, uint16_t length);
     
-    bool isActive(NeoPixelPattern& pattern, uint8_t segment) {
+    inline bool isSegmentActive(uint8_t segment) {
+        return segments[segment].pattern != NULL;
+    }
+    
+    bool isPatternActive(NeoPixelPattern& pattern, uint8_t segment) {
         return segments[segment].pattern == &pattern;
+    }
+    
+    NeoPixelPattern* getPattern(uint8_t segment) {
+        return segments[segment].pattern;
+    }
+    
+    void setPattern(NeoPixelPattern* pattern, uint8_t segment) {
+        segments[segment].pattern = pattern;
     }
     
     void play(NeoPixelPattern& pattern, uint8_t segment);
@@ -42,7 +54,11 @@ public:
     void setPixelColor(uint16_t pixel, color_t color, uint8_t segment);
     color_t getPixelColor(uint16_t pixel, uint8_t segment);
     
-    inline uint16_t numSegmentPixels(uint8_t segment) {
+    inline uint16_t segmentBasePixel(uint8_t segment) {
+        return segments[segment].basePixel;
+    }
+    
+    inline uint16_t segmentLength(uint8_t segment) {
         return segments[segment].length;
     }
         

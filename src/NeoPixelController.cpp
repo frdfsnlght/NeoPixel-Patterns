@@ -34,8 +34,8 @@ void NeoPixelController::play(NeoPixelPattern& pattern, uint8_t segment) {
     if (segments[segment].pattern != NULL) {
         stop(segment);
     }
-    segments[segment].pattern = &pattern;
-    segments[segment].pattern ->play(this, segment);
+    setPattern(&pattern, segment);
+    segments[segment].pattern->play(this, segment);
 }
 
 void NeoPixelController::pause(uint8_t segment) {
@@ -59,14 +59,13 @@ void NeoPixelController::stop(uint8_t segment) {
         if (segments[segment].pattern->isPlaying() || segments[segment].pattern->isPaused()) {
             segments[segment].pattern->stop();
         }
-        segments[segment].pattern = NULL;
     }
 }
 
 void NeoPixelController::update() {
     bool needShow = false;
     for (int i = 0; i < numSegments; i++) {
-        if (segments[i].pattern != NULL) {
+        if ((segments[i].pattern != NULL) && segments[i].pattern->isPlaying()) {
             if (segments[i].pattern->needsUpdate()) {
                 segments[i].pattern->update();
                 needShow = true;
@@ -76,6 +75,7 @@ void NeoPixelController::update() {
             }
             if (segments[i].pattern->isComplete()) {
                 segments[i].pattern->onComplete();
+                stop(i);
             }
         }
     }

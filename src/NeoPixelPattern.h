@@ -56,12 +56,12 @@ public:
     }
     
     inline bool needsUpdate() {
-        return (! complete) && (millis() - lastUpdate > interval);
+        return (isPlaying()) && (millis() - lastUpdate > interval);
     }
 
-    void play(NeoPixelController* ctrl, uint8_t segment) {
-        controller = ctrl;
-        segment = segment;
+    void play(NeoPixelController* _controller, uint8_t _segment) {
+        controller = _controller;
+        segment = _segment;
         lastUpdate = 0;
         state = PLAY;
         looped = complete = false;
@@ -69,10 +69,22 @@ public:
     }
     
     virtual void reset() {}
-    virtual void update() {}
-    virtual void pause() {}
-    virtual void resume() {}
-    virtual void stop() {}
+    
+    virtual void update() {
+        lastUpdate = millis();
+    }
+    
+    virtual void pause() {
+        state = PAUSE;
+    }
+    
+    virtual void resume() {
+        state = PLAY;
+    }
+    
+    virtual void stop() {
+        state = STOP;
+    }
     
     virtual void onLoop() {
         if (onLoopCallback != NULL) {
