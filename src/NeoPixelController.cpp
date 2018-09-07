@@ -59,6 +59,7 @@ void NeoPixelController::stop(uint8_t segment) {
         if (segments[segment].pattern->isPlaying() || segments[segment].pattern->isPaused()) {
             segments[segment].pattern->stop();
         }
+        segments[segment].pattern = NULL;
     }
 }
 
