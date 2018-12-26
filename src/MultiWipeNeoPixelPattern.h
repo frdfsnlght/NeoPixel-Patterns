@@ -14,31 +14,29 @@ public:
     static const uint8_t CENTER_OUT = 3;
     static const uint8_t REPEAT = 4;
     
-    color_t* colors;
+    static const uint8_t MAX_COLORS = 4;
+    
+    color_t colors[MAX_COLORS];
     uint8_t numColors;
     uint8_t mode;
     int16_t index;
     uint8_t color;
     
-    MultiWipeNeoPixelPattern(uint8_t numColors) : colors(NULL) {
-        updateNumColors(numColors);
-    }
+    MultiWipeNeoPixelPattern() {}
     
-    ~MultiWipeNeoPixelPattern() {
-        if (colors) free(colors);
-    }
-
     void setColor(uint8_t n, color_t color) {
         if (n >= numColors) return;
         colors[n] = color;
     }
     
-    void setup(unsigned long _interval, uint8_t _mode = FORWARD) {
+    void setup(uint8_t _numColors, unsigned long _interval, uint8_t _mode = FORWARD) {
+        numColors = (_numColors > MAX_COLORS) ? MAX_COLORS : _numColors;
         interval = _interval;
         mode = _mode;
     }
     
     virtual void reset() {
+        numColors = 0;
         index = 0;
         color = 0;
     }
@@ -77,19 +75,6 @@ public:
                     complete = true;
                 }
             }
-        }
-    }
-    
-private:
-
-    void updateNumColors(uint8_t n) {
-        if (colors) free(colors);
-        uint16_t numBytes = n * sizeof(color_t);
-        if ((colors = (color_t *)malloc(numBytes))) {
-            memset(colors, 0, numBytes);
-            numColors = n;
-        } else {
-            numColors = 0;
         }
     }
     
